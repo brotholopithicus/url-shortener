@@ -1,0 +1,11 @@
+{
+  "name": "url-shortener",
+  "version": "1.0.0",
+  "description": "enter url as parameter and recieve shortened url that redirects",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "mongoose": "^4.9.1",
+    "random-number-ify": "^0.0.1"
+  }
+}
