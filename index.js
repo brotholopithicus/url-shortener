@@ -28,22 +28,44 @@ function requestHandler(req, res) {
     if (req.url === '/list') {
         URI.find({}, (err, results) => {
             if (err) return handleError(err);
+            let arr = [];
+            results.forEach(result => arr.push({ id: result.id, url: result.url}));
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.write(JSON.stringify(results));
+            res.write(JSON.stringify(arr));
             res.end();
             return;
         });
     }
+    if (req.url === '/') {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.write(`<h4>Enter a URL as a parameter to recieve a shortened version or navigate to <a href="/list">/list</a> to show all shortened URLs available.</h4>`);
+        res.end();
+        return;
+    }
     const URL = url.URL;
     try {
         const param = new URL(url.parse(req.url).path.substr(1));
-        const newURI = new URI({ url: param });
-        newURI.save((err, doc) => {
+        URI.findOne({ url: param }, (err, result) => {
             if (err) return handleError(err);
-            console.log(doc);
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.write(JSON.stringify(doc));
-            res.end();
+            if (!result) {
+                const newURI = new URI({ url: param });
+                newURI.save((err, doc) => {
+                    if (err) return handleError(err);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    let resObj = {
+                      id: doc.id,
+                      url: doc.url
+                    }
+                    res.write(JSON.stringify(resObj));
+                    res.end();
+                });
+            } else {
+                if (result.id) {
+                    console.log('redirect: ', result.id);
+                    res.writeHead(302, { 'Location': '/' + result.id });
+                    res.end();
+                }
+            }
         });
     } catch (err) {
         if (err instanceof TypeError && req.url !== '/list') {
@@ -51,11 +73,12 @@ function requestHandler(req, res) {
             URI.findOne({ id: query }, (error, result) => {
                 if (error) return handleError(error);
                 if (result) {
+                    console.log('redirect: ', result.url);
                     res.writeHead(302, { 'Location': result.url });
                     res.end();
                 } else {
                     res.writeHead(200, { 'Content-Type': 'text/plain' });
-                    res.write('URL Not Found');
+                    res.write('NOT A VALID URL\nex. https://www.google.com');
                     res.end();
                     return;
                 }
@@ -65,8 +88,6 @@ function requestHandler(req, res) {
 }
 
 function handleError(err) {
-    console.log('WHEEP WHOOP');
     console.log(err);
-    console.log('WHEEEP WHOOOP');
 }
 server.listen(3000, () => console.log('server running on port 3000'));
