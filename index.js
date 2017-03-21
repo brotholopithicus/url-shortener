@@ -1,7 +1,6 @@
 const http = require('http');
 const url = require('url');
 const fs = require('fs');
-const path = require('path');
 
 const mongoose = require('mongoose');
 const URI = require('./models/uri');
@@ -15,6 +14,7 @@ db.once('open', () => console.log('connected to db'));
 
 const server = http.Server(requestHandler);
 
+const PORT = process.env.PORT || 3000;
 
 function requestHandler(req, res) {
     // favicon control
@@ -90,4 +90,4 @@ function requestHandler(req, res) {
 function handleError(err) {
     console.log(err);
 }
-server.listen(3000, () => console.log('server running on port 3000'));
+server.listen(PORT, () => console.log('server running on port ' + PORT));
